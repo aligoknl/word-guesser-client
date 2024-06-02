@@ -4,7 +4,7 @@ import { useWordStore } from "./store/wordStore";
 import { storeToRefs } from "pinia";
 
 const wordStore = useWordStore();
-const { words, loading, error } = storeToRefs(wordStore);
+const { randomWord, loading, error } = storeToRefs(wordStore);
 
 const targetWord = ref("");
 const guesses = ref([["", "", "", "", ""]]);
@@ -16,7 +16,6 @@ const isSuccess = ref(false);
 const isGameEnded = ref(false);
 const score = ref(0);
 
-// Handlers
 const handleLetterChange = (guessIndex, index, event) => {
   const newLetter = event.target.value.slice(-1).toUpperCase();
   if (newLetter.match(/[A-Z]/i)) {
@@ -59,12 +58,11 @@ const addNewGuessRow = () => {
   });
 };
 
-const getRandomWord = () =>
-  words.value[Math.floor(Math.random() * words.value.length)];
 const maxScore = 1000;
 
-const startNewGame = () => {
-  targetWord.value = getRandomWord();
+const startNewGame = async () => {
+  await wordStore.fetchRandomWord();
+  targetWord.value = randomWord.value;
   guesses.value = [["", "", "", "", ""]];
   isGameInProgress.value = true;
   isSuccess.value = false;
@@ -155,10 +153,8 @@ const setInputRef = (guessIndex, index) => (el) => {
   inputRefs.value[guessIndex][index] = el;
 };
 
-onMounted(async () => {
-  await wordStore.fetchWords();
+onMounted(() => {
   startNewGame();
-  console.log(targetWord.value);
 });
 </script>
 

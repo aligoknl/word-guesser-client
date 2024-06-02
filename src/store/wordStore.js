@@ -4,6 +4,7 @@ import axios from "axios";
 
 export const useWordStore = defineStore("wordStore", () => {
   const words = ref([]);
+  const randomWord = ref([]);
   const loading = ref(false);
   const error = ref(null);
 
@@ -20,5 +21,18 @@ export const useWordStore = defineStore("wordStore", () => {
     }
   };
 
-  return { words, loading, error, fetchWords };
+  const fetchRandomWord = async () => {
+    loading.value = true;
+    try {
+      const response = await axios.get("http://localhost:8085/api/random-word");
+      randomWord.value = response.data.word;
+    } catch (err) {
+      error.value = "Error fetching random word";
+      console.error(err);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  return { words, randomWord, loading, error, fetchWords, fetchRandomWord };
 });
