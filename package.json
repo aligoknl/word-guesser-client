@@ -9,8 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/node": "^20.13.0",
+    "@types/vue": "^2.0.0",
     "axios": "^1.7.2",
     "pinia": "^2.1.7",
+    "typescript": "^5.4.5",
     "vue": "^3.4.21"
   },
   "devDependencies": {

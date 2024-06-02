@@ -1,29 +1,33 @@
-<script setup>
-import { ref, computed, nextTick, onMounted } from "vue";
-import { useWordStore } from "./store/wordStore";
+<script setup lang="ts">
+import { ref, computed, nextTick, onMounted, Ref } from "vue";
+import { useWordStore } from "../src/store/wordStore";
 import { storeToRefs } from "pinia";
 
 const wordStore = useWordStore();
-const { words, loading, error } = storeToRefs(wordStore);
+const { randomWord, loading, error } = storeToRefs(wordStore);
 
-const targetWord = ref("");
-const guesses = ref([["", "", "", "", ""]]);
-const inputRefs = ref([]);
-const isGameInProgress = ref(false);
-const timer = ref(90); // 1.5 minutes countdown in seconds
-const timerInterval = ref(null);
-const isSuccess = ref(false);
-const isGameEnded = ref(false);
-const score = ref(0);
+const targetWord = ref<string>("");
+const guesses = ref<string[][]>([["", "", "", "", ""]]);
+const inputRefs = ref<Ref<HTMLInputElement | null>[][]>([]);
+const isGameInProgress = ref<boolean>(false);
+const timer = ref<number>(90); // 1.5 minutes countdown in seconds
+let timerInterval: NodeJS.Timeout | null = null;
+const isSuccess = ref<boolean>(false);
+const isGameEnded = ref<boolean>(false);
+const score = ref<number>(0);
 
-// Handlers
-const handleLetterChange = (guessIndex, index, event) => {
-  const newLetter = event.target.value.slice(-1).toUpperCase();
+const handleLetterChange = (
+  guessIndex: number,
+  index: number,
+  event: Event
+) => {
+  const input = event.target as HTMLInputElement;
+  const newLetter = input.value.slice(-1).toUpperCase();
   if (newLetter.match(/[A-Z]/i)) {
     guesses.value[guessIndex][index] = newLetter;
     if (index < 4) {
       nextTick(() => {
-        inputRefs.value[guessIndex][index + 1].focus();
+        inputRefs.value[guessIndex][index + 1]?.value?.focus();
       });
     } else if (guessIndex === guesses.value.length - 1) {
       handleSubmitGuess();
@@ -36,13 +40,13 @@ const handleSubmitGuess = () => {
   if (currentGuess.some((letter) => letter === "")) return;
 
   if (currentGuess.join("") === targetWord.value) {
-    clearInterval(timerInterval.value);
+    if (timerInterval) clearInterval(timerInterval);
     isGameInProgress.value = false;
     isSuccess.value = true;
     calculateScore();
   } else {
     if (guesses.value.length === 5) {
-      clearInterval(timerInterval.value);
+      if (timerInterval) clearInterval(timerInterval);
       isGameInProgress.value = false;
       isSuccess.value = false;
       calculateScore();
@@ -55,16 +59,15 @@ const handleSubmitGuess = () => {
 const addNewGuessRow = () => {
   guesses.value.push(["", "", "", "", ""]);
   nextTick(() => {
-    inputRefs.value[inputRefs.value.length - 1][0].focus();
+    inputRefs.value[inputRefs.value.length - 1][0]?.value?.focus();
   });
 };
 
-const getRandomWord = () =>
-  words.value[Math.floor(Math.random() * words.value.length)];
 const maxScore = 1000;
 
-const startNewGame = () => {
-  targetWord.value = getRandomWord();
+const startNewGame = async () => {
+  await wordStore.fetchRandomWord();
+  targetWord.value = randomWord.value;
   guesses.value = [["", "", "", "", ""]];
   isGameInProgress.value = true;
   isSuccess.value = false;
@@ -75,12 +78,12 @@ const startNewGame = () => {
 };
 
 const startTimer = () => {
-  clearInterval(timerInterval.value);
-  timerInterval.value = setInterval(() => {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
     if (timer.value > 0) {
       timer.value -= 1;
     } else {
-      clearInterval(timerInterval.value);
+      if (timerInterval) clearInterval(timerInterval);
       isGameInProgress.value = false;
       isSuccess.value = false;
       calculateScore();
@@ -89,7 +92,7 @@ const startTimer = () => {
 };
 
 const endGameImmediately = () => {
-  clearInterval(timerInterval.value);
+  if (timerInterval) clearInterval(timerInterval);
   isGameEnded.value = true;
   isGameInProgress.value = false;
   isSuccess.value = false;
@@ -100,10 +103,8 @@ const calculateScore = () => {
   const attempts = guesses.value.length - 1;
   const timeTaken = 90 - timer.value;
   if (isSuccess.value) {
-    // Decrease points for more attempts and more time taken
     score.value = maxScore - (attempts * 100 + timeTaken * 5);
   } else {
-    // No points if the player fails to guess the word
     score.value = 0;
   }
   if (score.value < 0) {
@@ -111,7 +112,6 @@ const calculateScore = () => {
   }
 };
 
-// Computed properties
 const message = computed(() => {
   if (isGameInProgress.value) return "";
 
@@ -139,7 +139,7 @@ const message = computed(() => {
   return msg;
 });
 
-const getClass = (guess, index) => {
+const getClass = (guess: string[], index: number) => {
   const target = targetWord.value;
   const guessLetter = guess[index];
   if (guessLetter === "") return "box";
@@ -148,17 +148,16 @@ const getClass = (guess, index) => {
   return "box";
 };
 
-const setInputRef = (guessIndex, index) => (el) => {
-  if (!inputRefs.value[guessIndex]) {
-    inputRefs.value[guessIndex] = [];
-  }
-  inputRefs.value[guessIndex][index] = el;
-};
+const setInputRef =
+  (guessIndex: number, index: number) => (el: HTMLInputElement | null) => {
+    if (!inputRefs.value[guessIndex]) {
+      inputRefs.value[guessIndex] = [];
+    }
+    inputRefs.value[guessIndex][index] = ref(el);
+  };
 
-onMounted(async () => {
-  await wordStore.fetchWords();
+onMounted(() => {
   startNewGame();
-  console.log(targetWord.value);
 });
 </script>
 
