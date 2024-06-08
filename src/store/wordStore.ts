@@ -7,6 +7,7 @@ export const useWordStore = defineStore("wordStore", () => {
   const randomWord = ref<string>("");
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
+  const validationError = ref<string | null>(null);
 
   const fetchWords = async () => {
     loading.value = true;
@@ -36,5 +37,33 @@ export const useWordStore = defineStore("wordStore", () => {
     }
   };
 
-  return { words, randomWord, loading, error, fetchWords, fetchRandomWord };
+  const validateWord = async (word: string) => {
+    try {
+      const response = await axios.get(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+      );
+      if (
+        response.data &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
+        validationError.value = null;
+        return true;
+      }
+    } catch (err) {
+      validationError.value;
+    }
+    return false;
+  };
+
+  return {
+    words,
+    randomWord,
+    loading,
+    error,
+    validationError,
+    fetchWords,
+    fetchRandomWord,
+    validateWord,
+  };
 });
