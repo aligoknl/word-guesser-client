@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import axios from "axios";
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const useWordStore = defineStore("wordStore", () => {
   const words = ref<string[]>([]);
   const randomWord = ref<string>("");
@@ -12,7 +14,7 @@ export const useWordStore = defineStore("wordStore", () => {
   const fetchWords = async () => {
     loading.value = true;
     try {
-      const response = await axios.get("http://localhost:8085/api/words");
+      const response = await axios.get(`${apiBaseUrl}/words/all-words`);
       words.value = response.data.map(
         (wordObj: { word: string }) => wordObj.word
       );
@@ -27,7 +29,7 @@ export const useWordStore = defineStore("wordStore", () => {
   const fetchRandomWord = async () => {
     loading.value = true;
     try {
-      const response = await axios.get("http://localhost:8085/api/random-word");
+      const response = await axios.get(`${apiBaseUrl}/words/random-word`);
       randomWord.value = response.data.word;
     } catch (err) {
       error.value = "Error fetching random word";
@@ -37,23 +39,17 @@ export const useWordStore = defineStore("wordStore", () => {
     }
   };
 
-  const validateWord = async (word: string) => {
+  const validateWord = async (word: string): Promise<boolean> => {
     try {
-      const response = await axios.get(
-        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
-      );
-      if (
-        response.data &&
-        Array.isArray(response.data) &&
-        response.data.length > 0
-      ) {
-        validationError.value = null;
-        return true;
-      }
+      const response = await axios.post(`${apiBaseUrl}/words/validate`, {
+        word,
+      });
+      return response.data.valid;
     } catch (err) {
-      validationError.value;
+      (error.value = "Error validating word:"), err;
+      console.error("Error validating word:", err);
+      return false;
     }
-    return false;
   };
 
   return {
