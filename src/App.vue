@@ -17,6 +17,8 @@ const isGameEnded = ref<boolean>(false);
 const score = ref<number>(0);
 const maxAttempts = ref<number>(10);
 const maxScore = ref<number>(1200);
+const shakeClass = ref<boolean>(false);
+const maxTime = <number>120;
 
 const getKey = (guessIndex: number, index: number) => `${guessIndex}-${index}`;
 
@@ -55,6 +57,11 @@ const handleSubmitGuess = async () => {
       const firstKey = getKey(guesses.value.length - 1, 0);
       inputRefs.value[firstKey]?.focus();
     });
+    // Trigger shake animation for the last row
+    shakeClass.value = true;
+    setTimeout(() => {
+      shakeClass.value = false;
+    }, 300);
     return;
   }
 
@@ -86,16 +93,27 @@ const addNewGuessRow = () => {
 };
 
 const startNewGame = async () => {
-  await wordStore.fetchRandomWord();
-  targetWord.value = randomWord.value;
-  guesses.value = [["", "", "", "", ""]];
-  isGameInProgress.value = true;
-  isSuccess.value = false;
-  isGameEnded.value = false;
-  score.value = maxScore.value;
-  timer.value = 120; // reset timer to 2 minutes
-  startTimer();
-  validationError.value = null;
+  loading.value = true;
+  try {
+    await wordStore.fetchRandomWord();
+    targetWord.value = randomWord.value;
+    guesses.value = [["", "", "", "", ""]];
+    isGameInProgress.value = true;
+    isSuccess.value = false;
+    isGameEnded.value = false;
+    score.value = maxScore.value;
+    timer.value = maxTime; // reset timer to 2 minutes
+    startTimer();
+    validationError.value = null;
+
+    await nextTick(); // Ensure the DOM updates with the new input elements
+    const firstKey = getKey(0, 0);
+    inputRefs.value[firstKey]?.focus();
+  } catch (error) {
+    console.error("Failed to start new game:", error);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const startTimer = () => {
@@ -123,7 +141,7 @@ const endGameImmediately = () => {
 const calculateScore = () => {
   validationError.value = null;
   const attempts = guesses.value.length - 1;
-  const timeTaken = 120 - timer.value;
+  const timeTaken = maxTime - timer.value;
   if (isSuccess.value) {
     score.value = maxScore.value - (attempts * 50 + timeTaken * 5);
   } else {
@@ -141,8 +159,8 @@ const message = computed(() => {
     return "You ended the game, click on 'Play New Game' to play.";
 
   const attempts = guesses.value.length;
-  const minutes = Math.floor((120 - timer.value) / 60);
-  const seconds = (120 - timer.value) % 60;
+  const minutes = Math.floor((maxTime - timer.value) / 60);
+  const seconds = (maxTime - timer.value) % 60;
   let msg = "";
 
   if (timer.value <= 0) {
@@ -195,7 +213,7 @@ onMounted(() => {
       </button>
       <div v-else>
         <p class="feedback">
-          Guess the 5-letter word in maximum {{ maxAttempts }} attemps
+          Guess the 5-letter word in maximum {{ maxAttempts }} attempts
         </p>
         <p class="timer">
           Time left: {{ Math.floor(timer / 60) }}:{{
@@ -205,6 +223,9 @@ onMounted(() => {
         <div
           v-for="(guess, guessIndex) in guesses"
           :key="guessIndex"
+          :class="
+            guessIndex === guesses.length - 1 && shakeClass ? 'shake' : ''
+          "
           class="boxes"
         >
           <label v-for="(letter, index) in guess" :key="letter">
@@ -243,6 +264,9 @@ onMounted(() => {
   justify-content: center;
   text-align: center;
   margin-top: 10rem;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .container {
@@ -277,8 +301,8 @@ onMounted(() => {
   margin: 0 5px;
   text-align: center;
   font-size: 24px;
-  border: none;
   border: 2px solid #ccc;
+  border-radius: 0.5rem;
 }
 
 .box.correct {
@@ -302,8 +326,31 @@ onMounted(() => {
   cursor: pointer;
   background-color: rgb(78, 144, 78);
   color: white;
+  border-radius: 0.5rem;
 }
 .end-game-btn {
   background-color: rgb(155, 77, 93);
+  border-radius: 0.5rem;
+}
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake {
+  animation: shake 0.3s;
 }
 </style>
