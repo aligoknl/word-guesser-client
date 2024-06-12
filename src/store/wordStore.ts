@@ -46,9 +46,8 @@ export const useWordStore = defineStore("wordStore", () => {
       });
       return response.data.valid;
     } catch (err) {
-      (error.value = "Error validating word:"), err;
       console.error("Error validating word:", err);
-      return false;
+      return true;
     }
   };
 
