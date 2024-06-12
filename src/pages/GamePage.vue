@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from "vue";
 import { useWordStore } from "../store/wordStore";
+import { useScoreStore } from "../store/scoreStore";
+import { useGameStore } from "../store/gameStore";
 import { storeToRefs } from "pinia";
+import { useRouter } from "vue-router";
 import MessageDisplay from "../components/MessageDisplay.vue";
 import InputGrid from "../components/InputGrid.vue";
 import GameButton from "../components/GameButton.vue";
 
+const router = useRouter();
 const wordStore = useWordStore();
+const scoreStore = useScoreStore();
+const gameStore = useGameStore();
+const { username, score } = storeToRefs(gameStore);
 const { randomWord, loading, error, validationError } = storeToRefs(wordStore);
 const targetWord = ref<string>("");
 const guesses = ref<string[][]>([["", "", "", "", ""]]);
@@ -16,7 +23,6 @@ const timer = ref<number>(120); // 2 minutes countdown in seconds
 let timerInterval: NodeJS.Timeout | null = null;
 const isSuccess = ref<boolean>(false);
 const isGameEnded = ref<boolean>(false);
-const score = ref<number>(0);
 const maxAttempts = ref<number>(10);
 const maxScore = ref<number>(1200);
 const shakeClass = ref<boolean>(false);
@@ -83,6 +89,7 @@ const handleSubmitGuess = async () => {
     isGameInProgress.value = false;
     isSuccess.value = true;
     calculateScore();
+    scoreStore.submitScore(username.value, score.value);
   } else {
     if (guesses.value.length === maxAttempts.value) {
       if (timerInterval) clearInterval(timerInterval);
@@ -155,13 +162,17 @@ const calculateScore = () => {
   const attempts = guesses.value.length - 1;
   const timeTaken = maxTime - timer.value;
   if (isSuccess.value) {
-    score.value = maxScore.value - (attempts * 50 + timeTaken * 5);
+    gameStore.calculateScore(attempts, timeTaken);
   } else {
     score.value = 0;
   }
   if (score.value < 0) {
     score.value = 0;
   }
+};
+
+const navigateToLandingPage = () => {
+  router.push({ name: "LandingPage" });
 };
 
 onMounted(() => {
@@ -189,12 +200,20 @@ onMounted(() => {
           :score="score"
           :isGameEnded="isGameEnded"
         ></MessageDisplay>
+        <div class="game-buttons">
+          <GameButton
+            v-if="!isGameInProgress"
+            label="Play New Game"
+            @click="startNewGame"
+          ></GameButton>
+          <GameButton
+            v-if="!isGameInProgress"
+            label="Go to Home"
+            @click="navigateToLandingPage"
+            class="end-game-btn"
+          ></GameButton>
+        </div>
       </section>
-      <GameButton
-        v-if="!isGameInProgress"
-        label="Play New Game"
-        @click="startNewGame"
-      ></GameButton>
       <div v-else>
         <p class="feedback">
           Guess the 5-letter word in maximum {{ maxAttempts }} attempts
@@ -211,7 +230,6 @@ onMounted(() => {
           :shakeClass="shakeClass"
           @letterChange="handleLetterChange"
         />
-        {{ targetWord }}
         <div class="buttons">
           <GameButton
             @click="handleSubmitGuess"

@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { storeToRefs } from "pinia";
+import { useGameStore } from "../store/gameStore";
+
+const gameStore = useGameStore();
+
+const { username } = storeToRefs(gameStore);
 
 const props = defineProps<{
   isGameInProgress: boolean;
@@ -25,17 +31,17 @@ const message = computed(() => {
   let msg = "";
 
   if (props.timer <= 0) {
-    msg = `You failed to guess the word "${props.targetWord}" within the time limit.`;
+    msg = `Sorry, ${username.value}. You failed to guess the word "${props.targetWord}" within the time limit.`;
   } else if (props.isSuccess) {
     if (attempts < 5) {
-      msg = `Wow! You guessed the word "${props.targetWord}" in ${attempts} attempts in ${minutes} minutes and ${seconds} seconds. Impressive! Your score: ${props.score}`;
+      msg = `Wow, ${username.value}! You guessed the word "${props.targetWord}" in ${attempts} attempts in ${minutes} minutes and ${seconds} seconds. Impressive! Your score: ${props.score}`;
     } else if (attempts >= 5 && attempts < props.maxAttempts) {
-      msg = `Great job! It took you only ${attempts} tries to guess the word "${props.targetWord}" in ${minutes} minutes and ${seconds} seconds. Your score: ${props.score}`;
+      msg = `Great job, ${username.value}! It took you only ${attempts} tries to guess the word "${props.targetWord}" in ${minutes} minutes and ${seconds} seconds. Your score: ${props.score}`;
     } else if (attempts === props.maxAttempts) {
-      msg = `Phew! You found the word "${props.targetWord}" on your last attempt. Good job! Your score: ${props.score}`;
+      msg = `Phew, ${username.value}! You found the word "${props.targetWord}" on your last attempt. Good job! Your score: ${props.score}`;
     }
   } else {
-    msg = `You failed to guess the word "${props.targetWord}" within ${attempts} attempts. Your score: ${props.score}`;
+    msg = `Sorry, ${username.value}. You failed to guess the word "${props.targetWord}" within ${attempts} attempts. Your score: ${props.score}`;
   }
   return msg;
 });

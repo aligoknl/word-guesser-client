@@ -1,4 +1,3 @@
-// src/store/scoreStore.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import axios from "axios";
@@ -30,7 +29,7 @@ export const useScoreStore = defineStore("scoreStore", () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await axios.get("`${apiBaseUrl}/scores/top-scores`");
+      const response = await axios.get(`${apiBaseUrl}/scores/top-scores`);
       leaderboard.value = response.data;
     } catch (err) {
       error.value = "Error fetching leaderboard";
