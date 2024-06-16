@@ -251,7 +251,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   text-align: center;
-  margin-top: 10rem;
+  margin-top: 5rem;
   font-family: "Poppins", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -262,9 +262,10 @@ onMounted(() => {
 }
 
 .validation-error {
-  color: red;
-  font-size: 18px;
-  margin-bottom: 10px;
+  color: rgb(255, 0, 162);
+  font-size: 16px;
+  margin: 1rem;
+  padding: 1rem;
 }
 
 .feedback {
