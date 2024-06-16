@@ -102,7 +102,7 @@ watch(
 }
 
 .box {
-  width: 3.2rem;
+  width: 3.1rem;
   height: 3.2rem;
   margin: 0 5px;
   text-align: center;
