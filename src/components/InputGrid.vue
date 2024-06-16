@@ -102,8 +102,8 @@ watch(
 }
 
 .box {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.2rem;
+  height: 3.2rem;
   margin: 0 5px;
   text-align: center;
   font-size: 24px;

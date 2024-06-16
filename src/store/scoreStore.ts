@@ -5,7 +5,9 @@ import axios from "axios";
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export const useScoreStore = defineStore("scoreStore", () => {
-  const leaderboard = ref<Array<{ username: string; score: number }>>([]);
+  const leaderboard = ref<
+    Array<{ username: string; score: number; _id: string }>
+  >([]);
   const isLoading = ref<boolean>(false);
   const error = ref<string | null>(null);
 
