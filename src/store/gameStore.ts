@@ -25,7 +25,7 @@ export const useGameStore = defineStore("gameStore", () => {
     if (score.value > 0) {
       scoreStore.submitScore(username.value, score.value);
     }
-    username.value = ""; // Reset username after the game ends
+    username.value = "";
   };
 
   const calculateScore = (attempts: number, timeTaken: number) => {

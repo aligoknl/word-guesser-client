@@ -35,7 +35,6 @@ const getClass = (guess: string[], index: number) => {
   return "box";
 };
 
-// Ensure initial focus on the first input when the component mounts
 onMounted(() => {
   nextTick(() => {
     const firstKey = getKey(0, 0);
@@ -43,7 +42,6 @@ onMounted(() => {
   });
 });
 
-// Watch for changes in guesses to manage focus
 watch(
   () => props.guesses,
   (newGuesses: Guesses) => {
@@ -63,7 +61,6 @@ watch(
 );
 </script>
 
-#### Template: ```vue
 <template>
   <div>
     <div

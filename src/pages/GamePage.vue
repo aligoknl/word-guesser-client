@@ -64,7 +64,6 @@ const handleSubmitGuess = async () => {
   const isValidWord = await wordStore.validateWord(guessWord);
 
   if (!isValidWord) {
-    // Show validation error and clear the current row for re-entry
     validationError.value = `The word "${guessWord}" is not valid. Please enter a valid word.`;
     guesses.value[guesses.value.length - 1] = ["", "", "", "", ""];
     nextTick(() => {
@@ -82,7 +81,7 @@ const handleSubmitGuess = async () => {
     return;
   }
 
-  validationError.value = null; // Clear any previous validation error
+  validationError.value = null;
 
   if (guessWord === targetWord.value) {
     if (timerInterval) clearInterval(timerInterval);
@@ -121,11 +120,11 @@ const startNewGame = async () => {
     isSuccess.value = false;
     isGameEnded.value = false;
     score.value = maxScore.value;
-    timer.value = maxTime; // reset timer to 2 minutes
+    timer.value = maxTime;
     startTimer();
     validationError.value = null;
 
-    await nextTick(); // Ensure the DOM updates with the new input elements
+    await nextTick();
     const firstKey = `0-0`;
     (
       document.querySelector(`input[ref-key="${firstKey}"]`) as HTMLInputElement

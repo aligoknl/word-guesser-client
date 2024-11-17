@@ -8,7 +8,9 @@ export const useScoreStore = defineStore("scoreStore", () => {
   const leaderboard = ref<
     Array<{ username: string; score: number; _id: string }>
   >([]);
+
   const isLoading = ref<boolean>(false);
+
   const error = ref<string | null>(null);
 
   const submitScore = async (username: string, score: number) => {
